@@ -25,11 +25,20 @@ import glob
 from copy import deepcopy
 from goose.article import Article
 from goose.utils import URLHelper, RawHelper
-from goose.extractors import StandardContentExtractor
+from goose.extractors.content import StandardContentExtractor
+from goose.extractors.videos import VideoExtractor
+from goose.extractors.title import TitleExtractor
+from goose.extractors.images import ImageExtractor
+from goose.extractors.links import LinksExtractor
+from goose.extractors.tweets import TweetsExtractor
+from goose.extractors.authors import AuthorsExtractor
+from goose.extractors.tags import TagsExtractor
+from goose.extractors.opengraph import OpenGraphExtractor
+from goose.extractors.publishdate import PublishDateExtractor
+from goose.extractors.metas import MetasExtractor
 from goose.cleaners import StandardDocumentCleaner
 from goose.outputformatters import StandardOutputFormatter
-from goose.images.extractors import UpgradedImageIExtractor
-from goose.videos.extractors import VideoExtractor
+
 from goose.network import HtmlFetcher
 
 
@@ -63,8 +72,32 @@ class Crawler(object):
         # init the output formatter
         self.formatter = self.get_formatter()
 
+        # metas extractor
+        self.metas_extractor = self.get_metas_extractor()
+
+        # publishdate extractor
+        self.publishdate_extractor = self.get_publishdate_extractor()
+
+        # opengraph extractor
+        self.opengraph_extractor = self.get_opengraph_extractor()
+
+        # tags extractor
+        self.tags_extractor = self.get_tags_extractor()
+
+        # authors extractor
+        self.authors_extractor = self.get_authors_extractor()
+
+        # tweets extractor
+        self.tweets_extractor = self.get_tweets_extractor()
+
+        # links extractor
+        self.links_extractor = self.get_links_extractor()
+
         # video extractor
         self.video_extractor = self.get_video_extractor()
+
+        # title extractor
+        self.title_extractor = self.get_title_extractor()
 
         # image extrator
         self.image_extractor = self.get_image_extractor()
@@ -95,17 +128,37 @@ class Crawler(object):
         self.article.raw_html = raw_html
         self.article.doc = doc
         self.article.raw_doc = deepcopy(doc)
-        # TODO
-        # self.article.publish_date = config.publishDateExtractor.extract(doc)
-        # self.article.additional_data = config.get_additionaldata_extractor.extract(doc)
-        self.article.title = self.extractor.get_title()
-        self.article.meta_lang = self.extractor.get_meta_lang()
-        self.article.meta_favicon = self.extractor.get_favicon()
-        self.article.meta_description = self.extractor.get_meta_description()
-        self.article.meta_keywords = self.extractor.get_meta_keywords()
-        self.article.canonical_link = self.extractor.get_canonical_link()
-        self.article.domain = self.extractor.get_domain()
-        self.article.tags = self.extractor.extract_tags()
+
+        # open graph
+        self.article.opengraph = self.opengraph_extractor.extract()
+
+        # publishdate
+        self.article.publish_date = self.publishdate_extractor.extract()
+
+        # meta
+        metas = self.metas_extractor.extract()
+        self.article.meta_lang = metas['lang']
+        self.article.meta_favicon = metas['favicon']
+        self.article.meta_description = metas['description']
+        self.article.meta_keywords = metas['keywords']
+        self.article.canonical_link = metas['canonical']
+        self.article.domain = metas['domain']
+
+        # tags
+        self.article.tags = self.tags_extractor.extract()
+
+        # authors
+        self.article.authors = self.authors_extractor.extract()
+
+        # title
+        self.article.title = self.title_extractor.extract()
+
+        # check for known node as content body
+        # if we find one force the article.doc to be the found node
+        # this will prevent the cleaner to remove unwanted text content
+        article_body = self.extractor.get_known_article_tags()
+        if article_body is not None:
+            self.article.doc = article_body
 
         # before we do any calcs on the body itself let's clean up the document
         self.article.doc = self.cleaner.clean()
@@ -116,6 +169,12 @@ class Crawler(object):
         # if we have a top node
         # let's process it
         if self.article.top_node is not None:
+
+            # article links
+            self.article.links = self.links_extractor.extract()
+
+            # tweets
+            self.article.tweets = self.tweets_extractor.extract()
 
             # video handling
             self.video_extractor.get_videos()
@@ -159,8 +218,32 @@ class Crawler(object):
             })
         return html
 
+    def get_metas_extractor(self):
+        return MetasExtractor(self.config, self.article)
+
+    def get_publishdate_extractor(self):
+        return PublishDateExtractor(self.config, self.article)
+
+    def get_opengraph_extractor(self):
+        return OpenGraphExtractor(self.config, self.article)
+
+    def get_tags_extractor(self):
+        return TagsExtractor(self.config, self.article)
+
+    def get_authors_extractor(self):
+        return AuthorsExtractor(self.config, self.article)
+
+    def get_tweets_extractor(self):
+        return TweetsExtractor(self.config, self.article)
+
+    def get_links_extractor(self):
+        return LinksExtractor(self.config, self.article)
+
+    def get_title_extractor(self):
+        return TitleExtractor(self.config, self.article)
+
     def get_image_extractor(self):
-        return UpgradedImageIExtractor(self.config, self.article)
+        return ImageExtractor(self.config, self.article)
 
     def get_video_extractor(self):
         return VideoExtractor(self.config, self.article)

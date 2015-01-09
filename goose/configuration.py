@@ -27,6 +27,13 @@ from goose.parsers import Parser
 from goose.parsers import ParserSoup
 from goose.version import __version__
 
+HTTP_DEFAULT_TIMEOUT = 30
+
+AVAILABLE_PARSERS = {
+    'lxml': Parser,
+    'soup': ParserSoup,
+}
+
 
 class Configuration(object):
 
@@ -82,26 +89,18 @@ class Configuration(object):
         self.additional_data_extractor = None
 
         # Parser type
+        self.available_parsers = AVAILABLE_PARSERS.keys()
         self.parser_class = 'lxml'
 
         # set the local storage path
         # make this configurable
         self.local_storage_path = os.path.join(tempfile.gettempdir(), 'goose')
 
+        # http timeout
+        self.http_timeout = HTTP_DEFAULT_TIMEOUT
+
     def get_parser(self):
-        return Parser if self.parser_class == 'lxml' else ParserSoup
-
-    def get_publishdate_extractor(self):
-        return self.extract_publishdate
-
-    def set_publishdate_extractor(self, extractor):
-        """\
-        Pass in to extract article publish dates.
-        @param extractor a concrete instance of PublishDateExtractor
-        """
-        if not extractor:
-            raise ValueError("extractor must not be null!")
-        self.extract_publishdate = extractor
+        return AVAILABLE_PARSERS[self.parser_class]
 
     def get_additionaldata_extractor(self):
         return self.additional_data_extractor
