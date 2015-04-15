@@ -26,7 +26,7 @@ import six
 
 from lxml import etree
 from copy import deepcopy
-from goose.text import innerTrim, encodeValue, get_encodings_from_content
+from goose.text import innerTrim, encodeValue, get_encodings_from_content, smart_str
 
 
 class Parser(object):
@@ -57,6 +57,7 @@ class Parser(object):
             html = encodeValue(html)
             self.doc = lxml.html.fromstring(html)
         else:
+            html = smart_str(html, encoding=encoding)
             parser = lxml.html.HTMLParser(encoding=encoding)
             self.doc = lxml.html.fromstring(html, parser=parser)
         return self.doc
