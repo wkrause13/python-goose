@@ -186,7 +186,7 @@ class TestExtractionBase(BaseMockTests):
         # clean_text value
         result_value = result_value[0:len(expected_value)]
         msg = u"The beginning of the article text was not as expected!"
-        self.assertEqual(expected_value, result_value)
+        self.assertEqual(expected_value, result_value, msg=msg)
 
     def runArticleAssertions(self, article, fields):
         """\
