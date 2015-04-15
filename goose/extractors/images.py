@@ -407,6 +407,7 @@ class ImageExtractor(BaseExtractor):
         if o.hostname:
             return o.geturl()
         # we have a relative url
+        print(src)
         return urljoin(self.target_url, src)
 
     def load_customesite_mapping(self):

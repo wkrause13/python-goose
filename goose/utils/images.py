@@ -38,11 +38,11 @@ class ImageUtils(object):
     def get_image_dimensions(self, identify_program, path):
         image_details = ImageDetails()
         try:
-            image = Image.open(path)
-            image_details.set_mime_type(image.format)
-            width, height = image.size
-            image_details.set_width(width)
-            image_details.set_height(height)
+            with Image.open(path) as image:
+                image_details.set_mime_type(image.format)
+                width, height = image.size
+                image_details.set_width(width)
+                image_details.set_height(height)
         except IOError:
             image_details.set_mime_type('NA')
         return image_details
