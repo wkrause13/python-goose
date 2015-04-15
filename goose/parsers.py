@@ -51,8 +51,14 @@ class Parser(object):
 
     @classmethod
     def fromstring(self, html):
-        html = encodeValue(html)
-        self.doc = lxml.html.fromstring(html)
+        encoding = get_encodings_from_content(html)
+        encoding = encoding and encoding[0] or None
+        if not encoding:
+            html = encodeValue(html)
+            self.doc = lxml.html.fromstring(html)
+        else:
+            parser = lxml.html.HTMLParser(encoding=encoding)
+            self.doc = lxml.html.fromstring(html, parser=parser)
         return self.doc
 
     @classmethod
