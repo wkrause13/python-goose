@@ -61,11 +61,11 @@ setup(name='goose-extractor',
     classifiers=CLASSIFIERS,
     author='Xavier Grangier',
     author_email='grangier@gmail.com',
-    url='https://github.com/grangier/python-goose',
+    url='https://github.com/wkrause13/python-goose.git',
     license='Apache',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=['Pillow', 'lxml', 'cssselect', 'jieba', 'beautifulsoup', 'nltk'],
+    install_requires=['Pillow', 'lxml', 'cssselect', 'jieba', 'beautifulsoup4', 'nltk'],
     test_suite="tests"
 )
